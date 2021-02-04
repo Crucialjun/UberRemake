@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1063718702292",
+    "project_id": "uberremake-8e47b",
+    "storage_bucket": "uberremake-8e47b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1063718702292:android:7ec9c00e9c8dd7e4fabf41",
+        "android_client_info": {
+          "package_name": "com.crucialtech.uberremake"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1063718702292-gluchoeoia7rkv285kgip26e1qlqerpi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD46f0L6QFZz6EK8dHBz4PC4zOqve81ick"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1063718702292-gluchoeoia7rkv285kgip26e1qlqerpi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
