@@ -17,6 +17,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
+import com.crucialtech.uberremake.Common.currentUser
 import com.crucialtech.uberremake.databinding.ActivityMainBinding
 import com.firebase.ui.auth.AuthMethodPickerLayout
 import com.firebase.ui.auth.AuthUI
@@ -82,17 +83,28 @@ class MainActivity : AppCompatActivity() {
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.exists()) {
-                        Toast.makeText(this@MainActivity, "User already registered", Toast.LENGTH_SHORT).show()
-                    }else{
-                        showRegisterLayout()
-                    }
+                        //Toast.makeText(this@MainActivity, "User already registered", Toast.LENGTH_SHORT).show()
+
+                        val model = snapshot.getValue(DriverInfoModel::class.java)
+                        goToHomeActivity(model)
+                        }else{
+                            showRegisterLayout()
+                        }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(this@MainActivity, "${error.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, error.message, Toast.LENGTH_SHORT).show()
                 }
 
             })
+    }
+
+    private fun goToHomeActivity(model: DriverInfoModel?) {
+        Common.currentUser = model
+
+        startActivity(Intent(this,DriverHomeActivity::class.java))
+        finish()
+
     }
 
     private fun showRegisterLayout() {
@@ -138,6 +150,7 @@ class MainActivity : AppCompatActivity() {
                         }).addOnSuccessListener {
                         Toast.makeText(this@MainActivity, "Registration succesful}", Toast.LENGTH_SHORT).show()
                         dialog.dismiss()
+                        goToHomeActivity(model)
                         findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
                     }
             }
