@@ -15,8 +15,11 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.crucialtech.uberremake.DRIVER_INFO_REFERENCE
+import com.crucialtech.uberremake.DRIVER_LOCATION_REFERENCE
 import com.crucialtech.uberremake.R
 import com.firebase.geofire.GeoFire
+import com.firebase.geofire.GeoLocation
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -26,10 +29,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -59,7 +60,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private val onlineValueEventListener = object : ValueEventListener{
         override fun onDataChange(snapshot: DataSnapshot) {
-
+            if(snapshot.exists()){
+                currentUserRef.onDisconnect().removeValue()
+            }
         }
 
         override fun onCancelled(error: DatabaseError) {
@@ -88,6 +91,18 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun init() {
+        onlineRef = FirebaseDatabase.getInstance().reference.child(".info/connected")
+        driversLocationRef = FirebaseDatabase.getInstance().reference.child(
+            DRIVER_LOCATION_REFERENCE)
+        currentUserRef = FirebaseDatabase
+            .getInstance()
+            .reference
+            .child(DRIVER_LOCATION_REFERENCE)
+            .child(FirebaseAuth.getInstance().currentUser!!.uid)
+
+        geoFire = GeoFire(driversLocationRef)
+
+
         locationRequest = LocationRequest()
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         locationRequest.fastestInterval = 3000
@@ -102,6 +117,17 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                     ,locationResult.lastLocation.longitude)
 
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPos,18f))
+
+                geoFire.setLocation(FirebaseAuth.getInstance().currentUser!!.uid,
+                    GeoLocation(locationResult.lastLocation.latitude,locationResult.lastLocation.longitude)
+                ){ key :String?, error:DatabaseError? ->
+                    if(error != null){
+                        Snackbar.make(mapFragment.requireView(),error.message,Snackbar.LENGTH_LONG).show()
+                    }else{
+                        Snackbar.make(mapFragment.requireView(),"You are online",Snackbar.LENGTH_LONG).show()
+
+                    }
+                }
             }
         }
 
@@ -128,8 +154,19 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     override fun onDestroy() {
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        geoFire.removeLocation(FirebaseAuth.getInstance().currentUser?.uid)
+        onlineRef.removeEventListener(onlineValueEventListener)
         super.onDestroy()
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerOnlineSystem()
+    }
+
+    private fun registerOnlineSystem() {
+        onlineRef.addValueEventListener(onlineValueEventListener)
     }
 
     override fun onMapReady(googleMap: GoogleMap?) {
