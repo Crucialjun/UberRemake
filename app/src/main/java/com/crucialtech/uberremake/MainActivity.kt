@@ -22,6 +22,7 @@ import com.google.android.gms.tasks.OnFailureListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.installations.FirebaseInstallations
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import java.util.*
@@ -64,9 +65,9 @@ class MainActivity : AppCompatActivity() {
             val user = auth.currentUser
             if(user != null) {
 
-                FirebaseInstanceId
+                FirebaseInstallations
                     .getInstance()
-                    .instanceId
+                    .getToken(true)
                     .addOnFailureListener {
                         Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
                     }
@@ -114,7 +115,7 @@ class MainActivity : AppCompatActivity() {
     private fun showRegisterLayout() {
         val dialog = Dialog(this,R.style.DialogTheme)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        val itemView = LayoutInflater.from(this).inflate(R.layout.layout_register,null)
+        val itemView = View.inflate(this,R.layout.layout_register,null)
 
         val firstName = itemView.findViewById<EditText>(R.id.edt_first_name)
         val lastName = itemView.findViewById<EditText>(R.id.edt_last_name)
@@ -189,7 +190,7 @@ class MainActivity : AppCompatActivity() {
             val response = IdpResponse.fromResultIntent(data)
             if(resultCode == Activity.RESULT_OK){
                 val user = FirebaseAuth.getInstance().currentUser
-                
+
             }
             else{
                 Toast.makeText(this, "${response?.error?.message}", Toast.LENGTH_SHORT).show()
@@ -198,9 +199,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        if(firebaseAuth != null && listener != null){
-            firebaseAuth.removeAuthStateListener(listener)
-        }
+        firebaseAuth.removeAuthStateListener(listener)
         super.onStop()
     }
 
