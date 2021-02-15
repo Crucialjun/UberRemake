@@ -3,6 +3,8 @@ package com.crucialtech.uberremake.ui.home
 import android.Manifest
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.location.Address
+import android.location.Geocoder
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -37,6 +39,8 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
+import java.io.IOException
+import java.util.*
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
 
@@ -53,15 +57,15 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     //Online System
     lateinit var onlineRef : DatabaseReference
-    lateinit var currentUserRef : DatabaseReference
+    var currentUserRef : DatabaseReference? = null
     lateinit var driversLocationRef : DatabaseReference
     lateinit var geoFire: GeoFire
 
 
     private val onlineValueEventListener = object : ValueEventListener{
         override fun onDataChange(snapshot: DataSnapshot) {
-            if(snapshot.exists()){
-                currentUserRef.onDisconnect().removeValue()
+            if(snapshot.exists() && currentUserRef != null ){
+                currentUserRef!!.onDisconnect().removeValue()
             }
         }
 
@@ -94,15 +98,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private fun init() {
         onlineRef = FirebaseDatabase.getInstance().reference.child(".info/connected")
-        driversLocationRef = FirebaseDatabase.getInstance().reference.child(
-            DRIVER_LOCATION_REFERENCE)
-        currentUserRef = FirebaseDatabase
-            .getInstance()
-            .reference
-            .child(DRIVER_LOCATION_REFERENCE)
-            .child(FirebaseAuth.getInstance().currentUser!!.uid)
 
-        geoFire = GeoFire(driversLocationRef)
+
 
 
         locationRequest = LocationRequest()
@@ -120,16 +117,40 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPos,18f))
 
-                geoFire.setLocation(FirebaseAuth.getInstance().currentUser!!.uid,
-                    GeoLocation(locationResult.lastLocation.latitude,locationResult.lastLocation.longitude)
-                ){ key :String?, error:DatabaseError? ->
-                    if(error != null){
-                        Snackbar.make(mapFragment.requireView(),error.message,Snackbar.LENGTH_LONG).show()
-                    }else{
-                        Snackbar.make(mapFragment.requireView(),"You are online",Snackbar.LENGTH_LONG).show()
+                val geoCoder = Geocoder(requireContext(), Locale.getDefault())
+                val addressList : List <Address>?
+                try{
+                    addressList = geoCoder.getFromLocation(locationResult.lastLocation.latitude
+                        ,locationResult.lastLocation.longitude,1)
+                    val cityName = addressList[0].locality
 
+                    driversLocationRef = FirebaseDatabase.getInstance().reference.child(
+                        DRIVER_LOCATION_REFERENCE).child(cityName)
+                    currentUserRef = driversLocationRef
+                        .child(DRIVER_LOCATION_REFERENCE)
+                        .child(FirebaseAuth.getInstance().currentUser!!.uid)
+
+                    geoFire = GeoFire(driversLocationRef)
+
+                    geoFire.setLocation(FirebaseAuth.getInstance().currentUser!!.uid,
+                        GeoLocation(locationResult.lastLocation.latitude,locationResult.lastLocation.longitude)
+                    ){ key :String?, error:DatabaseError? ->
+                        if(error != null){
+                            Snackbar.make(mapFragment.requireView(),error.message,Snackbar.LENGTH_LONG).show()
+                        }else{
+                            Snackbar.make(mapFragment.requireView(),"You are online",Snackbar.LENGTH_LONG).show()
+
+                        }
                     }
+                    registerOnlineSystem()
+
+
+                }catch (e : IOException){
+                    Snackbar.make(mapFragment.requireView(),"$e.message",Snackbar.LENGTH_LONG).show()
+
                 }
+
+
             }
         }
 
