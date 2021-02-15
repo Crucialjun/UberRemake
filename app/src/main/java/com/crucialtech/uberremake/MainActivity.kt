@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
                     }
                     .addOnSuccessListener {
-                        Log.d("TAG", "init: ${it.token} ")
+                        Log.d("TAG", "TOKEN: ${it.token} ")
                         UserUtils.updateToken(this,it.token)
                     }
                 checkUserFromFirebase()

@@ -82,10 +82,12 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
 
 
-        init()
+
         mapFragment = childFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        init()
 
         return root
     }
@@ -229,6 +231,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 }
 
             }).check()
+
+
         try{
             val success = googleMap
                 .setMapStyle(
@@ -241,9 +245,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             Log.e("Error", e.message.toString())
         }
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+
     }
 }
