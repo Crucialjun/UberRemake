@@ -136,31 +136,26 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        btnContinue.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View?) {
-                val model = DriverInfoModel()
-                model.firstName = firstName.text.toString()
-                model.lastName = lastName.text.toString()
-                model.phoneNumber = phone.text.toString()
+        btnContinue.setOnClickListener {
+            val model = DriverInfoModel()
+            model.firstName = firstName.text.toString()
+            model.lastName = lastName.text.toString()
+            model.phoneNumber = phone.text.toString()
 
-                driverInfoRef.child(FirebaseAuth.getInstance().currentUser!!.uid).setValue(model)
-                    .addOnFailureListener(
-                        object : OnFailureListener {
-                            override fun onFailure(p0: Exception) {
-                                Toast.makeText(this@MainActivity, "${p0.message}", Toast.LENGTH_SHORT).show()
-                                dialog.dismiss()
-                                findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
-                            }
-
-                        }).addOnSuccessListener {
-                        Toast.makeText(this@MainActivity, "Registration succesful}", Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                        goToHomeActivity(model)
-                        findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
-                    }
-            }
-
-        })
+            driverInfoRef.child(FirebaseAuth.getInstance().currentUser!!.uid).setValue(model)
+                .addOnFailureListener { p0 ->
+                    Toast.makeText(this@MainActivity, "${p0.message}", Toast.LENGTH_SHORT)
+                        .show()
+                    dialog.dismiss()
+                    findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
+                }.addOnSuccessListener {
+                    Toast.makeText(this@MainActivity, "Registration succesful}", Toast.LENGTH_SHORT)
+                        .show()
+                    dialog.dismiss()
+                    goToHomeActivity(model)
+                    findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
+                }
+        }
 
 
     }
