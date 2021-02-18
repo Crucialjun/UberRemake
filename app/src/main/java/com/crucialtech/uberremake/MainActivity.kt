@@ -57,7 +57,8 @@ class MainActivity : AppCompatActivity() {
 
         providers = arrayListOf(
             AuthUI.IdpConfig.PhoneBuilder().build(),
-            AuthUI.IdpConfig.GoogleBuilder().build()
+            AuthUI.IdpConfig.GoogleBuilder().build(),
+            AuthUI.IdpConfig.EmailBuilder().build()
         )
 
         firebaseAuth = FirebaseAuth.getInstance()
@@ -164,6 +165,7 @@ class MainActivity : AppCompatActivity() {
         val authMethodPickerLayout = AuthMethodPickerLayout.Builder(R.layout.layout_sign_in)
             .setPhoneButtonId(R.id.btn_signin_phone)
             .setGoogleButtonId(R.id.btn_signin_google)
+            .setEmailButtonId(R.id.btn_email_signin)
             .build()
 
         startActivityForResult(
